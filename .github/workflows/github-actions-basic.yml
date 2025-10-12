@@ -37,4 +37,4 @@ jobs:
         shell: pwsh
         run: pytest
         # 4. 경로를 명확하게 지정했습니다.
-        working-directory: ./Chapter02
+        working-directory: Chapter02
