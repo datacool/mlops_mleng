@@ -4,52 +4,38 @@ on: [push]
 
 jobs:
   build:
-    # 1. 실행 환경을 Windows로 변경했습니다.
     runs-on: windows-latest
     strategy:
       matrix:
         python-version: [3.11, 3.13]
 
     steps:
+      # 1. 코드 체크아웃
       - uses: actions/checkout@v3
-        # --- 디버깅을 위해 이 단계를 추가하세요 ---
-      - name: Check file structure
-        run: |
-         echo "--- Files and folders in the root directory ---"
-         dir
-         echo "-------------------------------------------"
-         
-         # --- 👇 이 디버깅 단계를 추가하세요 ---
-      - name: List files in the repository
-        shell: pwsh
-        run: Get-ChildItem -Recurse # 현재 폴더와 하위 폴더의 모든 파일/폴더를 보여줍니다.
 
-      - name: Test with pytest
-        run: pytest
-        working-directory: Chapter02
-
+      # 2. 파이썬 설치
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
+      # 3. 의존성 패키지 설치 (pytest 포함)
       - name: Install dependencies
-        # 2. 윈도우의 기본 셸인 PowerShell을 사용하도록 명시했습니다.
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          # 3. 리눅스 명령어 'if [ -f ... ]'를 PowerShell 문법으로 변경했습니다.
-          if (Test-Path -Path requirements.txt) { pip install -r requirements.txt }
+          # requirements.txt 파일이 있다면 해당 파일의 패키지도 설치
+          if (Test-Path -Path 'mlops_mleng/requirements.txt') { pip install -r 'mlops_mleng/requirements.txt' }
 
+      # 4. Lint로 코드 스타일 검사
       - name: Lint with flake8
         run: |
-          # flake8 명령어는 Python 기반이므로 OS와 상관없이 동일하게 작동합니다.
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          # flake8를 mlops_mleng 폴더 내부에서 실행
+          flake8 ./mlops_mleng --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 ./mlops_mleng --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+      # 5. pytest로 테스트 실행 (가장 마지막)
       - name: Test with pytest
-        shell: pwsh
         run: pytest
-        # 4. 경로를 명확하게 지정했습니다.
         working-directory: mlops_mleng/Chapter02
