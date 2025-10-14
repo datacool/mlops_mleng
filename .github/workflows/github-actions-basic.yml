@@ -26,16 +26,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           # requirements.txt 파일이 있다면 해당 파일의 패키지도 설치
-          if (Test-Path -Path 'mlops_mleng/requirements.txt') { pip install -r 'mlops_mleng/requirements.txt' }
+          if (Test-Path -Path 'requirements.txt') { pip install -r 'requirements.txt' }
 
       # 4. Lint로 코드 스타일 검사
       - name: Lint with flake8
         run: |
           # flake8를 mlops_mleng 폴더 내부에서 실행
-          flake8 ./mlops_mleng --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 ./mlops_mleng --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       # 5. pytest로 테스트 실행 (가장 마지막)
       - name: Test with pytest
         run: pytest
-        working-directory: mlops_mleng/Chapter02
+        working-directory: Chapter02
