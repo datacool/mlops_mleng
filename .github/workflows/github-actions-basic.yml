@@ -12,6 +12,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        # --- 디버깅을 위해 이 단계를 추가하세요 ---
+      - name: Check file structure
+        run: |
+         echo "--- Files and folders in the root directory ---"
+         dir
+         echo "-------------------------------------------"
+         
+         # --- 👇 이 디버깅 단계를 추가하세요 ---
+      - name: List files in the repository
+        shell: pwsh
+        run: Get-ChildItem -Recurse # 현재 폴더와 하위 폴더의 모든 파일/폴더를 보여줍니다.
+
+      - name: Test with pytest
+        run: pytest
+        working-directory: Chapter02
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
