@@ -11,7 +11,8 @@ jobs:
 
     steps:
       # 1. 코드를 내려받습니다.
-      - uses: actions/checkout@v3
+      - name: Check out repository
+        uses: actions/checkout@v3
 
       # 2. 파이썬을 설치합니다.
       - name: Set up Python ${{ matrix.python-version }}
@@ -19,34 +20,42 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 3. (🌟새로 추가된 부분) pip 캐시를 설정합니다.
+      # 3. pip 캐시를 설정합니다.
+      # (경로를 'mlops_mleng/requirements.txt'로 수정)
       - name: Get pip cache dir
         id: pip-cache
-        run: |
-          echo "dir=$(pip cache dir)" >> $env:GITHUB_OUTPUT
         shell: pwsh
-
+        run: echo "dir=$(pip cache dir)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+      
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          # key가 requirements.txt 파일의 위치를 올바르게 참조하도록 수정
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/mlops_mleng/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
-      # 4. 의존성 패키지를 설치합니다. (캐시가 있으면 매우 빠르게 지나갑니다)
+      # 4. 의존성 패키지를 설치합니다. (pytest 포함)
       - name: Install dependencies
+        shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          if (Test-Path -Path 'requirements.txt') { pip install -r 'requirements.txt' }
-        shell: pwsh
+          # requirements.txt 파일 경로를 수정
+          if (Test-Path -Path 'mlops_mleng/requirements.txt') { 
+            pip install -r 'mlops_mleng/requirements.txt' 
+          }
 
-      # 5. Lint로 코드 스타일을 검사합니다.
+      # 5. Lint(코드 스타일 검사)를 실행합니다.
       - name: Lint with flake8
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        shell: pwsh
+        run: flake8 ./mlops_mleng --count --select=E9,F63,F7,F82 --show-source --statistics
+        # working-directory를 지정하거나, flake8 명령어에 경로를 지정해줍니다.
 
       # 6. pytest로 테스트를 실행합니다.
       - name: Test with pytest
+        shell: pwsh
         run: pytest
-        working-directory: Chapter02
+        # 실제 코드가 있는 폴더로 경로를 지정합니다.
+        working-directory: mlops_mleng/Chapter02
